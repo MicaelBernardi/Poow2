@@ -14,8 +14,9 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.net.URI;
 import java.util.List;
 
+@CrossOrigin(origins = "http://localhost:4200") // Mantém o CORS local
 @RestController
-@RequestMapping("/cliente")
+@RequestMapping("/cliente") // Define a rota base. Angular chama: localhost:8080/cliente
 public class ClienteController {
 
     private final ClienteService service;
@@ -24,20 +25,24 @@ public class ClienteController {
         this.service = service;
     }
 
-
-    // GET - listar todos
-    @Operation(summary = "Listar clientes", description = "Retorna lista de clientes ")
+    // ========================================================================
+    // GET - LISTAR TODOS
+    // Angular chama: this.http.get(apiUrl) -> GET /cliente
+    // ========================================================================
+    @Operation(summary = "Listar clientes", description = "Retorna lista de clientes")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Lista retornada com sucesso",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = Cliente.class)))
     })
-    @GetMapping("/listar")
+    @GetMapping // Removi o "/listar" para ficar padrão REST
     public List<Cliente> listar() {
         return this.service.listar();
     }
 
-
-    // GET - buscar por ID
+    // ========================================================================
+    // GET - BUSCAR POR ID
+    // Angular chama: this.http.get(apiUrl + '/' + id) -> GET /cliente/1
+    // ========================================================================
     @Operation(summary = "Buscar cliente por Id", description = "Retorna um cliente com o ID informado")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Cliente encontrado",
@@ -50,22 +55,10 @@ public class ClienteController {
         return cliente != null ? ResponseEntity.ok(cliente) : ResponseEntity.notFound().build();
     }
 
-
-    // GET - buscar por UUID
-    @Operation(summary = "Buscar cliente por Uuid", description = "Retorna um cliente com o UUID informado")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Cliente encontrado",
-                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Cliente.class))),
-            @ApiResponse(responseCode = "404", description = "Cliente não encontrado")
-    })
-    @GetMapping("/uuid/{uuid}")
-    public ResponseEntity<Cliente> getClienteUuid(@PathVariable String uuid) {
-        Cliente cliente = this.service.getClienteUuid(uuid);
-        return cliente != null ? ResponseEntity.ok(cliente) : ResponseEntity.notFound().build();
-    }
-
-
-    // POST - criar cliente
+    // ========================================================================
+    // POST - CRIAR CLIENTE
+    // Angular chama: this.http.post(apiUrl, cliente) -> POST /cliente
+    // ========================================================================
     @Operation(summary = "Criar um novo cliente", description = "Cria um novo cliente")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Cliente criado com sucesso",
@@ -80,23 +73,29 @@ public class ClienteController {
         return ResponseEntity.created(uri).body(cliente);
     }
 
-
-    // PUT - atualizar cliente
+    // ========================================================================
+    // PUT - ATUALIZAR CLIENTE
+    // Angular chama: this.http.put(apiUrl + '/' + id, cliente) -> PUT /cliente/1
+    // ========================================================================
     @Operation(summary = "Atualizar cliente por Id", description = "Atualiza os dados de um cliente com o id")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Cliente atualizado com sucesso",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = Cliente.class))),
             @ApiResponse(responseCode = "404", description = "Cliente não encontrado")
     })
-    @PutMapping
+    @PutMapping("/{id}") // Adicionei o ID na URL para bater com o Angular
     @Transactional
-    public ResponseEntity<Cliente> atualizar(@RequestBody Cliente cliente) {
+    public ResponseEntity<Cliente> atualizar(@PathVariable Long id, @RequestBody Cliente cliente) {
+        // Segurança: Garante que o ID do objeto é o mesmo da URL
+        cliente.setId(id);
         this.service.atualizar(cliente);
         return ResponseEntity.ok(cliente);
     }
 
-
-    // DELETE - remover cliente
+    // ========================================================================
+    // DELETE - REMOVER CLIENTE
+    // Angular chama: this.http.delete(apiUrl + '/' + id) -> DELETE /cliente/1
+    // ========================================================================
     @Operation(summary = "Excluir cliente", description = "Remove um cliente de acordo com o ID informado")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Cliente removido com sucesso"),
@@ -108,13 +107,18 @@ public class ClienteController {
         return ResponseEntity.noContent().build();
     }
 
+    // ========================================================================
+    // OUTROS MÉTODOS (UUID) - Mantidos caso precise usar no futuro
+    // ========================================================================
 
-    // POST - atualizar por UUID
+    @Operation(summary = "Buscar cliente por Uuid", description = "Retorna um cliente com o UUID informado")
+    @GetMapping("/uuid/{uuid}")
+    public ResponseEntity<Cliente> getClienteUuid(@PathVariable String uuid) {
+        Cliente cliente = this.service.getClienteUuid(uuid);
+        return cliente != null ? ResponseEntity.ok(cliente) : ResponseEntity.notFound().build();
+    }
+
     @Operation(summary = "Atualizar cliente por Uuid", description = "Atualiza um cliente usando o Uuid")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Cliente atualizado com sucesso"),
-            @ApiResponse(responseCode = "404", description = "Cliente não encontrado")
-    })
     @PostMapping("/uuid")
     public ResponseEntity<Void> atualizarPorUUID(@RequestBody Cliente cliente) {
         this.service.atualizarUUID(cliente);
