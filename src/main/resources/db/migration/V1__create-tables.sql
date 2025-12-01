@@ -2,20 +2,23 @@ CREATE TABLE Cliente (
                          id SERIAL PRIMARY KEY,
                          nome VARCHAR(100) NOT NULL,
                          cpf VARCHAR(14) UNIQUE NOT NULL,
-                         telefone VARCHAR(15)
+                         telefone VARCHAR(15),
+                         uuid Uuid DEFAULT gen_random_uuid()
 );
 
 CREATE TABLE Funcionario (
                              id SERIAL PRIMARY KEY,
                              nome VARCHAR(100) NOT NULL,
                              email VARCHAR(100) UNIQUE NOT NULL,
-                             senha VARCHAR(100) NOT NULL
+                             senha VARCHAR(100) NOT NULL,
+                             uuid Uuid DEFAULT gen_random_uuid()
 );
 
 CREATE TABLE Servico (
                          id SERIAL PRIMARY KEY,
                          descricao VARCHAR(200) NOT NULL,
-                         valor DOUBLE PRECISION NOT NULL
+                         valor DOUBLE PRECISION NOT NULL,
+                         uuid Uuid DEFAULT gen_random_uuid()
 );
 
 CREATE TABLE Agendamento (
@@ -25,6 +28,7 @@ CREATE TABLE Agendamento (
                              cliente_id INT NOT NULL,
                              funcionario_id INT NOT NULL,
                              servico_id INT NOT NULL,
+                             uuid Uuid DEFAULT gen_random_uuid(),
                              FOREIGN KEY (cliente_id) REFERENCES Cliente(id) ON DELETE CASCADE,
                              FOREIGN KEY (funcionario_id) REFERENCES Funcionario(id) ON DELETE CASCADE,
                              FOREIGN KEY (servico_id) REFERENCES Servico(id) ON DELETE CASCADE

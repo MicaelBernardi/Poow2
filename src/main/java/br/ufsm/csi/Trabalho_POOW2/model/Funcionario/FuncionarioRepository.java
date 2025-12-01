@@ -7,4 +7,6 @@ import java.util.UUID;
 public interface FuncionarioRepository extends JpaRepository<Funcionario, Long> {
     public Funcionario findByUuid(UUID uuid);
     public void deleteByUuid(UUID uuid);
+
+    Funcionario findByEmail(String email);
 }
